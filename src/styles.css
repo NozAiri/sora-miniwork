@@ -1,0 +1,97 @@
+:root{
+  --bg: #fffcff;
+  --card: #ffffff;
+  --text: #1b1b1b;
+  --muted: #555;
+  --brand: #5865f2;
+  --ok: #13b981;
+  --warn: #f59e0b;
+  --shadow: 0 8px 30px rgba(0,0,0,.08);
+  --radius: 16px;
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0; font-family: ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial;
+  color:var(--text); background: var(--bg);
+  line-height:1.5; letter-spacing:.2px;
+}
+
+/* ✨やさしい星空（明るめ） */
+body::before, body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
+  background:
+    radial-gradient(2px 2px at 20% 30%, #ffd, transparent 50%),
+    radial-gradient(1.5px 1.5px at 70% 60%, #ffe, transparent 60%),
+    radial-gradient(1.8px 1.8px at 40% 80%, #fff3, transparent 60%),
+    linear-gradient(180deg, #fff 0%, #fdf7ff 40%, #f9f3ff 100%);
+  opacity:.9;
+}
+@keyframes twinkle { 50% { opacity:.55; transform:translateY(-1px)} }
+body::before{ animation: twinkle 6s ease-in-out infinite; }
+
+/* レイアウト */
+.container{ max-width:960px; margin:auto; padding:24px; }
+.header{ display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; }
+.brand{ display:flex; gap:12px; align-items:center; }
+.logo{ width:40px; height:40px; border-radius:50%; background:
+  radial-gradient(circle at 30% 30%, #fff, #dde5ff 60%, #c9d4ff);
+  box-shadow: var(--shadow);
+}
+.title{ font-size:20px; font-weight:800; letter-spacing:.2px}
+.small{ color:var(--muted); font-size:13.5px}
+
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
+.card{ background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+.sectionTitle{ font-weight:700; margin-bottom:4px }
+
+/* ボタン */
+.btn{
+  appearance:none; border:0; border-radius:12px; padding:10px 14px;
+  background:linear-gradient(180deg,#6b7bff,#5865f2);
+  color:#fff; font-weight:700; cursor:pointer; box-shadow:0 6px 20px rgba(88,101,242,.35);
+}
+.btn:disabled{ opacity:.5; cursor:not-allowed }
+.link{ background:none; color:var(--brand); border:0; padding:0; cursor:pointer; }
+
+/* 入力 */
+.input, textarea, select{
+  width:100%; padding:10px 12px; border-radius:12px; border:1px solid #e7e7ef; background:#fff;
+  font:inherit; outline:none;
+}
+textarea{ min-height:96px; resize:vertical }
+.label{ font-size:13px; color:var(--muted); margin-bottom:6px; display:block }
+
+/* 呼吸サークル */
+.breath-wrap{ display:grid; place-items:center; gap:14px; }
+.breath-circle{
+  width:180px; height:180px; border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, #fff, #e9f5ff 60%, #d7eaff);
+  box-shadow:0 15px 40px rgba(64,118,255,.25), inset 0 0 0 6px rgba(88,101,242,.15);
+  transform: scale(var(--s,1));
+  transition: transform 0.8s ease-in-out;
+}
+.phase{ font-weight:800; letter-spacing:.8px }
+.kp{ font-variant-numeric: tabular-nums }
+.patterns{ display:flex; flex-wrap:wrap; gap:8px }
+.patterns .chip{
+  padding:6px 10px; border-radius:999px; border:1px solid #e6e6ef; background:#fff; cursor:pointer;
+}
+.patterns .chip.active{ border-color:#5865f2; color:#5865f2; font-weight:700 }
+
+/* 絵文字 */
+.emoji-grid{ display:grid; grid-template-columns:repeat(8, minmax(34px,1fr)); gap:8px; }
+.emoji{ font-size:20px; line-height:38px; height:38px; text-align:center; border-radius:10px; cursor:pointer; user-select:none; }
+.emoji.sel{ outline:2px solid #5865f2; background:#eef1ff }
+
+/* カラーチップ */
+.colors{ display:grid; grid-template-columns:repeat(10, 1fr); gap:8px }
+.color{ height:28px; border-radius:999px; border:1px solid #e6e6ef; cursor:pointer }
+.color.sel{ outline:3px solid #333; }
+
+/* アクセシビリティ */
+@media (prefers-reduced-motion: reduce){
+  .breath-circle{ transition:none }
+  body::before{ animation:none }
+}
