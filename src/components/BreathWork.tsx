@@ -1,148 +1,160 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type PatternKey = "4-4-4" | "4-7-8" | "5-5-5";
-const PATTERNS: Record<PatternKey, { inhale: number; hold: number; exhale: number; label: string }> = {
-  "4-4-4": { inhale: 4, hold: 4, exhale: 4, label: "4–4–4（等間）" },
-  "4-7-8": { inhale: 4, hold: 7, exhale: 8, label: "4–7–8（落ち着き）" },
-  "5-5-5": { inhale: 5, hold: 5, exhale: 5, label: "5–5–5（ややゆっくり）" },
+type Props = { onBack: () => void };
+
+type Phase = "inhale" | "hold" | "exhale";
+const PHRASE: Record<Phase, string> = {
+  inhale: "ゆっくり吸って",
+  hold: "そのままキープ",
+  exhale: "ながく吐いて",
 };
 
-type Phase = "吸う" | "止める" | "吐く" | "休む";
-
-export default function BreathWork({ onBack }: { onBack: () => void }) {
+export default function BreathWork({ onBack }: Props) {
   const [running, setRunning] = useState(false);
-  const [pattern, setPattern] = useState<PatternKey>("4-7-8");
-  const [phase, setPhase] = useState<Phase>("吸う");
-  const [secLeft, setSecLeft] = useState<number>(PATTERNS[pattern].inhale);
-  const [cycles, setCycles] = useState(0);
+  const [phase, setPhase] = useState<Phase>("inhale");
+  const [cycle, setCycle] = useState(0);
+
+  // 時間（秒）— 好みでいつでも変更OK
+  const [secInhale, setSecInhale] = useState(4);
+  const [secHold, setSecHold] = useState(2);
+  const [secExhale, setSecExhale] = useState(4);
+
+  const total = secInhale + secHold + secExhale;
+  const [elapsed, setElapsed] = useState(0);
   const raf = useRef<number | null>(null);
+  const startAt = useRef<number | null>(null);
 
-  const times = useMemo(() => PATTERNS[pattern], [pattern]);
+  const schedule = useMemo(
+    () => [
+      { name: "inhale" as Phase, dur: secInhale },
+      { name: "hold" as Phase, dur: secHold },
+      { name: "exhale" as Phase, dur: secExhale },
+    ],
+    [secInhale, secHold, secExhale]
+  );
 
+  // アニメーションループ
   useEffect(() => {
     if (!running) return;
+    const tick = (t: number) => {
+      if (startAt.current == null) startAt.current = t;
+      const s = (t - startAt.current) / 1000;
+      setElapsed(s);
 
-    const tick = (t0: number, total: number) => {
-      const step = (t: number) => {
-        const elapsed = Math.floor((t - t0) / 1000);
-        const left = Math.max(total - elapsed, 0);
-        setSecLeft(left);
-
-        if (left <= 0) {
-          if (phase === "吸う") {
-            setPhase("止める");
-            setSecLeft(times.hold);
-            raf.current = requestAnimationFrame((t) => tick(t, times.hold));
-            return;
-          }
-          if (phase === "止める") {
-            setPhase("吐く");
-            setSecLeft(times.exhale);
-            raf.current = requestAnimationFrame((t) => tick(t, times.exhale));
-            return;
-          }
-          if (phase === "吐く") {
-            setPhase("休む");
-            setSecLeft(1);
-            raf.current = requestAnimationFrame((t) => tick(t, 1));
-            return;
-          }
-          // 休む → 吸う（サイクル+1）
-          setCycles((c) => c + 1);
-          setPhase("吸う");
-          setSecLeft(times.inhale);
-          raf.current = requestAnimationFrame((t) => tick(t, times.inhale));
-          return;
+      let acc = 0;
+      let current: Phase = "inhale";
+      for (const seg of schedule) {
+        if (s < acc + seg.dur) {
+          current = seg.name;
+          break;
         }
+        acc += seg.dur;
+      }
+      setPhase(current);
 
-        raf.current = requestAnimationFrame(step);
-      };
-
-      raf.current = requestAnimationFrame(step);
+      if (s >= total) {
+        // 1サイクル終了
+        startAt.current = t; // 継続
+        setCycle((c) => c + 1);
+        setElapsed(0);
+      }
+      raf.current = requestAnimationFrame(tick);
     };
-
-    // 初回スタート
-    const first = phase === "吸う" ? times.inhale : phase === "止める" ? times.hold : phase === "吐く" ? times.exhale : 1;
-    setSecLeft(first);
-    raf.current = requestAnimationFrame((t) => tick(t, first));
-
+    raf.current = requestAnimationFrame(tick);
     return () => {
       if (raf.current) cancelAnimationFrame(raf.current);
+      raf.current = null;
+      startAt.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, pattern, phase]);
+  }, [running, schedule, total]);
 
-  // 円のスケール
-  const scale = phase === "吸う" ? 1.2 : phase === "止める" ? 1.22 : 0.8;
+  const scale =
+    phase === "inhale" ? 1.6 : phase === "hold" ? 1.6 : /* exhale */ 0.8;
+
+  const progress = (() => {
+    // 現在フェーズ内の進み
+    let acc = 0;
+    for (const seg of schedule) {
+      if (phase === seg.name) {
+        return ((elapsed - acc) / Math.max(0.0001, seg.dur));
+      }
+      acc += seg.dur;
+    }
+    return 0;
+  })();
 
   return (
     <div className="container">
-      <button className="link" onClick={onBack}>← ホームへ戻る</button>
-      <div className="card">
-        <div className="sectionTitle">呼吸ワーク</div>
-        <div className="small">息を吸って、止めて、吐く。ガイドに合わせて、心と体を整えましょう。</div>
+      <div className="row" style={{ justifyContent: "space-between" }}>
+        <button className="btn ghost" onClick={onBack}>← 戻る</button>
+        <div className="small">呼吸サイクル：{cycle}</div>
+      </div>
 
-        <div className="breath-wrap" style={{ marginTop: 16 }}>
-          <div className="breath-circle" style={{ ["--s" as any]: scale }} aria-hidden />
-          <div className="phase" aria-live="polite">{phase}</div>
-          <div className="kp" aria-live="polite">{secLeft}s</div>
-
-          <div className="patterns" aria-label="パターン">
-            {(Object.keys(PATTERNS) as PatternKey[]).map((key) => (
-              <button
-                key={key}
-                className={`chip ${pattern === key ? "active" : ""}`}
-                onClick={() => {
-                  setPattern(key);
-                  setPhase("吸う");
-                  setSecLeft(PATTERNS[key].inhale);
-                }}
-              >
-                {PATTERNS[key].label}
-              </button>
-            ))}
+      <div className="card" style={{ marginTop: 12 }}>
+        <div className="breath-wrap">
+          <div
+            className="circle"
+            style={{ transform: `scale(${scale})`, transitionDuration: "900ms" }}
+            aria-label="breathing circle"
+          />
+          <div className="phase">{PHRASE[phase]}</div>
+          <div className="timer">
+            {phase === "inhale" && "吸う"}
+            {phase === "hold" && "止める"}
+            {phase === "exhale" && "吐く"}：{Math.max(0, (1 - progress) * (
+              phase === "inhale" ? secInhale :
+              phase === "hold"   ? secHold   :
+                                   secExhale
+            )).toFixed(0)} 秒
           </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            {!running ? (
-              <button
-                className="btn"
-                onClick={() => {
-                  setPhase("吸う");
-                  setSecLeft(times.inhale);
-                  setRunning(true);
-                }}
-              >
-                ▶ はじめる
-              </button>
-            ) : (
-              <button
-                className="btn"
-                onClick={() => {
-                  setRunning(false);
-                  if (raf.current) cancelAnimationFrame(raf.current);
-                }}
-              >
-                ■ とめる
-              </button>
-            )}
+          <div className="row" style={{marginTop:8}}>
             <button
-              className="chip"
-              onClick={() => {
-                setCycles(0);
-                setPhase("吸う");
-                setSecLeft(times.inhale);
-              }}
+              className={`btn ${running ? "ghost" : "primary"}`}
+              onClick={() => setRunning(v => !v)}
             >
-              1周目から
+              {running ? "一時停止" : "はじめる"}
+            </button>
+            <button
+              className="btn"
+              onClick={() => { setCycle(0); setElapsed(0); setPhase("inhale"); }}
+              disabled={running}
+              title="カウンターのリセット"
+            >
+              リセット
             </button>
           </div>
 
-          <div className="small">
-            いまのサイクル：<b>{cycles}</b>
-          </div>
-          <div className="small" style={{ maxWidth: 660 }}>
-            ヒント：吐く時間を長めにすると、副交感神経が働きやすくなります。無理せず、いつでも停止できます。
+          <div className="divider" />
+
+          <div style={{width:"100%"}}>
+            <div className="sectionTitle">リズムの調整（お好みで）</div>
+            <div className="row">
+              <label className="pill">
+                吸う
+                <input className="input" type="number" min={2} max={10}
+                  style={{width:80}} value={secInhale}
+                  onChange={e => setSecInhale(Number(e.target.value||4))}/>
+                秒
+              </label>
+              <label className="pill">
+                止める
+                <input className="input" type="number" min={0} max={10}
+                  style={{width:80}} value={secHold}
+                  onChange={e => setSecHold(Number(e.target.value||2))}/>
+                秒
+              </label>
+              <label className="pill">
+                吐く
+                <input className="input" type="number" min={2} max={12}
+                  style={{width:80}} value={secExhale}
+                  onChange={e => setSecExhale(Number(e.target.value||4))}/>
+                秒
+              </label>
+            </div>
+            <div className="note" style={{marginTop:8}}>
+              苦しくない速さでOK。<b>「気持ちいい」</b>を基準にどうぞ。
+            </div>
           </div>
         </div>
       </div>

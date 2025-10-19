@@ -1,97 +1,125 @@
+/* ===== 明るめテーマ + 星きらきら背景 ===== */
 :root{
-  --bg: #fffcff;
-  --card: #ffffff;
-  --text: #1b1b1b;
-  --muted: #555;
-  --brand: #5865f2;
-  --ok: #13b981;
-  --warn: #f59e0b;
-  --shadow: 0 8px 30px rgba(0,0,0,.08);
+  --bg: #f9fbff;
+  --card: #ffffffcc;
+  --text: #1a2233;
+  --muted: #5b6b8a;
+  --primary: #3b82f6;   /* 青 */
+  --primary-2:#60a5fa;
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --ring: 36px;
   --radius: 16px;
 }
 
 *{box-sizing:border-box}
 html,body,#root{height:100%}
 body{
-  margin:0; font-family: ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial;
-  color:var(--text); background: var(--bg);
-  line-height:1.5; letter-spacing:.2px;
+  margin:0;
+  color:var(--text);
+  background: radial-gradient(1200px 800px at 20% -10%, #dbeafe 0%, transparent 60%),
+              radial-gradient(1000px 600px at 120% 10%, #fde68a33 0%, transparent 60%),
+              var(--bg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  line-height:1.6;
 }
 
-/* ✨やさしい星空（明るめ） */
-body::before, body::after{
-  content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
+/* 星空（CSSだけで軽い） */
+.starry{
+  position: fixed; inset:0; pointer-events:none; z-index:0;
   background:
-    radial-gradient(2px 2px at 20% 30%, #ffd, transparent 50%),
-    radial-gradient(1.5px 1.5px at 70% 60%, #ffe, transparent 60%),
-    radial-gradient(1.8px 1.8px at 40% 80%, #fff3, transparent 60%),
-    linear-gradient(180deg, #fff 0%, #fdf7ff 40%, #f9f3ff 100%);
-  opacity:.9;
+     radial-gradient(2px 2px at 20% 30%, #ffffff99 50%, transparent 52%) repeat,
+     radial-gradient(1.5px 1.5px at 70% 20%, #ffffff80 50%, transparent 52%) repeat,
+     radial-gradient(1.5px 1.5px at 50% 70%, #ffffff80 50%, transparent 52%) repeat;
+  background-size: 300px 300px, 260px 260px, 220px 220px;
+  animation: twinkle 6s linear infinite;
+  opacity:.8;
 }
-@keyframes twinkle { 50% { opacity:.55; transform:translateY(-1px)} }
-body::before{ animation: twinkle 6s ease-in-out infinite; }
+@keyframes twinkle{
+  0%  {filter:brightness(1)}
+  50% {filter:brightness(1.25)}
+  100%{filter:brightness(1)}
+}
 
 /* レイアウト */
-.container{ max-width:960px; margin:auto; padding:24px; }
-.header{ display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; }
-.brand{ display:flex; gap:12px; align-items:center; }
-.logo{ width:40px; height:40px; border-radius:50%; background:
-  radial-gradient(circle at 30% 30%, #fff, #dde5ff 60%, #c9d4ff);
-  box-shadow: var(--shadow);
+.container{max-width:900px;margin:0 auto;padding:24px;position:relative;z-index:1}
+.header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
 }
-.title{ font-size:20px; font-weight:800; letter-spacing:.2px}
-.small{ color:var(--muted); font-size:13.5px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:44px;height:44px;border-radius:50%;background:
+      radial-gradient(circle at 35% 35%, #fff, #c7d2fe 40%, #93c5fd 60%, #60a5fa);}
+.title{font-weight:700;font-size:20px}
+.small{color:var(--muted);font-size:13px}
 
-.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; }
-.card{ background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
-.sectionTitle{ font-weight:700; margin-bottom:4px }
+/* カード */
+.card{
+  background:var(--card);
+  backdrop-filter:saturate(1.2) blur(3px);
+  border:1px solid #e5e7eb;
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow: 0 8px 24px #1f293714;
+}
+
+/* ホームの3カード */
+.grid{display:grid;gap:16px;margin-top:12px}
+@media (min-width:760px){ .grid{grid-template-columns:repeat(3,1fr)} }
+.tool{
+  display:flex;flex-direction:column;gap:12px;min-height:180px;
+  transition: transform .15s ease, box-shadow .15s ease, background .2s;
+}
+.tool:hover{ transform: translateY(-2px); box-shadow:0 12px 26px #1f29371a; background:#fff; }
+.tool h3{margin:0 0 6px 0}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:#eef2ff;color:#374151}
 
 /* ボタン */
 .btn{
-  appearance:none; border:0; border-radius:12px; padding:10px 14px;
-  background:linear-gradient(180deg,#6b7bff,#5865f2);
-  color:#fff; font-weight:700; cursor:pointer; box-shadow:0 6px 20px rgba(88,101,242,.35);
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;padding:10px 14px;border-radius:12px;
+  border:1px solid #dbeafe;background:#fff;color:var(--primary);
+  cursor:pointer;font-weight:600;transition:all .15s;
 }
-.btn:disabled{ opacity:.5; cursor:not-allowed }
-.link{ background:none; color:var(--brand); border:0; padding:0; cursor:pointer; }
+.btn:hover{background:#eff6ff}
+.btn.primary{background:linear-gradient(180deg, var(--primary-2), var(--primary)); color:#fff; border-color:transparent;}
+.btn.ghost{border:1px dashed #cbd5e1;color:#475569;background:transparent}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.sectionTitle{font-weight:700;color:#334155;margin-bottom:8px}
 
-/* 入力 */
+/* 入力類 */
 .input, textarea, select{
-  width:100%; padding:10px 12px; border-radius:12px; border:1px solid #e7e7ef; background:#fff;
-  font:inherit; outline:none;
+  width:100%; padding:12px 14px; border-radius:12px;
+  border:1px solid #d1d5db; background:#fff; color:var(--text);
+  outline:none; transition:border-color .15s, box-shadow .15s;
+  font-size:15px;
 }
-textarea{ min-height:96px; resize:vertical }
-.label{ font-size:13px; color:var(--muted); margin-bottom:6px; display:block }
+.input:focus, textarea:focus, select:focus{border-color:#93c5fd; box-shadow:0 0 0 3px #93c5fd33}
+textarea{min-height:96px; resize:vertical}
 
-/* 呼吸サークル */
-.breath-wrap{ display:grid; place-items:center; gap:14px; }
-.breath-circle{
-  width:180px; height:180px; border-radius:50%;
-  background:radial-gradient(circle at 30% 30%, #fff, #e9f5ff 60%, #d7eaff);
-  box-shadow:0 15px 40px rgba(64,118,255,.25), inset 0 0 0 6px rgba(88,101,242,.15);
-  transform: scale(var(--s,1));
-  transition: transform 0.8s ease-in-out;
+/* トグルチップ/絵文字 */
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:999px;border:1px solid #cbd5e1;background:#fff;
+  cursor:pointer; user-select:none;
 }
-.phase{ font-weight:800; letter-spacing:.8px }
-.kp{ font-variant-numeric: tabular-nums }
-.patterns{ display:flex; flex-wrap:wrap; gap:8px }
-.patterns .chip{
-  padding:6px 10px; border-radius:999px; border:1px solid #e6e6ef; background:#fff; cursor:pointer;
+.pill.active{border-color:#93c5fd;background:#eff6ff}
+.emoji{font-size:22px;line-height:1}
+
+/* 呼吸ワークの円 */
+.breath-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.circle{
+  width:var(--ring);height:var(--ring);border-radius:50%;
+  background: radial-gradient(circle at 35% 35%, #fff, #bfdbfe 50%, #93c5fd 75%);
+  box-shadow:0 0 0 12px #93c5fd33, 0 0 0 24px #93c5fd1a;
+  transition: transform 1s ease-in-out;
 }
-.patterns .chip.active{ border-color:#5865f2; color:#5865f2; font-weight:700 }
+.phase{font-weight:700;letter-spacing:.08em;color:#475569}
+.timer{font-variant-numeric:tabular-nums;color:#334155}
 
-/* 絵文字 */
-.emoji-grid{ display:grid; grid-template-columns:repeat(8, minmax(34px,1fr)); gap:8px; }
-.emoji{ font-size:20px; line-height:38px; height:38px; text-align:center; border-radius:10px; cursor:pointer; user-select:none; }
-.emoji.sel{ outline:2px solid #5865f2; background:#eef1ff }
+/* カード内区切り */
+.divider{height:1px;background:#e5e7eb;margin:12px 0}
 
-/* カラーチップ */
-.colors{ display:grid; grid-template-columns:repeat(10, 1fr); gap:8px }
-.color{ height:28px; border-radius:999px; border:1px solid #e6e6ef; cursor:pointer }
-.color.sel{ outline:3px solid #333; }
-
-/* アクセシビリティ */
-@media (prefers-reduced-motion: reduce){
-  .breath-circle{ transition:none }
-  body::before{ animation:none }
-}
+/* 備考 */
+.note{font-size:13px;color:#64748b}
